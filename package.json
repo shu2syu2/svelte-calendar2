@@ -27,6 +27,8 @@
 		"@fullcalendar/interaction": "^6.1.17",
 		"@fullcalendar/list": "^6.1.17",
 		"@fullcalendar/timegrid": "^6.1.17",
+		"dotenv": "^16.5.0",
+		"pg": "^8.16.0",
 		"svelte-fullcalendar": "^3.0.0"
 	}
 }

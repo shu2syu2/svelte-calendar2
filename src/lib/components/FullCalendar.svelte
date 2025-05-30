@@ -19,7 +19,7 @@
     seenOtherMonths.clear();
   }
 
-  const options = {
+  const baseOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     droppable: true,
     editable: true,
@@ -55,9 +55,13 @@
       // ・それ以外の当月セル →〈日〉だけ
       return { html: `${d}` };
     },
-
-    events: events,
   };
+
+  // events が更新されたらカレンダー上のイベントソースを差し替え
+  $: if (calendarApi) {
+    calendarApi.removeAllEventSources();
+    calendarApi.addEventSource(events);
+  }
 
   onMount(() => {
     calendarApi = calendar.getAPI();
@@ -70,7 +74,7 @@
 </script>
 
 <div class="Calendar">
-  <FullCalendar {options} bind:this={calendar} />
+  <FullCalendar options={baseOptions} bind:this={calendar} />
 </div>
 
 <style>
@@ -168,7 +172,6 @@
     :global(.fc .fc-col-header-cell-cushion) {
       font-size: 1em; /* 小さい画面でのヘッダーフォントサイズ */
     }
-
     :global(.fc .fc-daygrid-day-number) {
       font-size: 0.8em; /* 小さい画面での日付番号フォントサイズ */
     }

@@ -6,60 +6,68 @@
   import jaLocale from "@fullcalendar/core/locales/ja";
   import "@fullcalendar/common/main.css";
 
+  // 外部から渡す予定のイベント
   export let initialEvents = [];
 
   let calendar;
-  let calendarApi;
+  let calendarApi = null;
+  let firstOtherTop = null;
 
-  // 「既に描画で見た他月」を覚えておくセット
-  let seenOtherMonths = new Set();
-
-  // view 切り替え時にリセット
-  function handleDatesSet() {
-    seenOtherMonths.clear();
-  }
-
+  // カレンダーオプション定義
   const options = {
-    plugins:        [ dayGridPlugin, interactionPlugin ],
-    initialView:    "dayGridMonth",
-    headerToolbar:  false,
-    locale:         "ja",
-    timeZone:       "Asia/Tokyo",
+    droppable: true,
+    editable: true,
+    selectable: true,
     fixedWeekCount: true,
-    height:         "100%",
-
-    // ここで見た他月をクリア
-    datesSet:       handleDatesSet,
-
-    // 🔑 描画コンテンツを一度だけ決める
-    dayCellContent: ({ date, isOther }) => {
-      const m = date.getMonth() + 1;
-      const d = date.getDate();
-      // ・当月の１日 → 〈月／日〉
-      if (!isOther && d === 1) {
-        return { html: `${m}/${d}` };
-      }
-      // ・他月セル → 初回だけ〈月／日〉、以降は〈日〉
-      if (isOther) {
-        if (!seenOtherMonths.has(m)) {
-          seenOtherMonths.add(m);
-          return { html: `${m}/${d}` };
-        }
-        return { html: `${d}` };
-      }
-      // ・それ以外の当月セル →〈日〉だけ
-      return { html: `${d}` };
+    themeSystem: "standard",
+    initialView: "dayGridMonth",
+    headerToolbar: false,
+    locales: [jaLocale],
+    locale: "ja",
+    timeZone: "Asia/Tokyo",
+    plugins: [dayGridPlugin, interactionPlugin],
+    height: "100%",
+    datesSet: () => {
+      // ビュー切り替え時に前/次月先頭リセット
+      firstOtherTop = null;
     },
-
+    dayCellDidMount: handleDayCellDidMount,
     events: initialEvents,
   };
+
+  function handleDayCellDidMount({ el, date, isOther }) {
+    const numEl = el.querySelector(".fc-daygrid-day-number");
+    if (!numEl) return;
+
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    let text;
+
+    if (!isOther && day === 1) {
+      // 当月1日 => 月/日表示
+      firstOtherTop = null;     // 明示的にリセット
+      text = `${month}/${day}日`;
+    } else if (isOther && firstOtherTop === null) {
+      // 前月 or 次月の最初のセルだけ => 月/日表示
+      firstOtherTop = day;
+      text = `${month}/${day}日`;
+    } else {
+      // その他 => 日付のみ
+      text = `${day}日`;
+    }
+
+    numEl.textContent = text;
+  }
 
   onMount(() => {
     calendarApi = calendar.getAPI();
   });
 
+  // 親から呼び出すメソッド
   export function goto(date) {
     if (!calendarApi) return;
+    // 同じ月を再適用するときも必ずリセット＆再描画
+    firstOtherTop = null;
     calendarApi.changeView("dayGridMonth", date);
   }
 </script>

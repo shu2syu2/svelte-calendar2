@@ -6,7 +6,7 @@
   import jaLocale from "@fullcalendar/core/locales/ja";
   import "@fullcalendar/common/main.css";
 
-  export let initialEvents = [];
+  export let events = [];
 
   let calendar;
   let calendarApi;
@@ -20,18 +20,23 @@
   }
 
   const options = {
-    plugins:        [ dayGridPlugin, interactionPlugin ],
-    initialView:    "dayGridMonth",
-    headerToolbar:  false,
-    locale:         "ja",
-    timeZone:       "Asia/Tokyo",
+    plugins: [dayGridPlugin, interactionPlugin],
+    droppable: true,
+    editable: true,
+    // 日付選択有無
+    selectable: true,
+    // 6週固定
     fixedWeekCount: true,
-    height:         "100%",
-
+    themeSystem: "standard",
+    // 初期表示
+    initialView: "dayGridMonth",
+    headerToolbar: false,
+    locale: "ja",
+    timeZone: "Asia/Tokyo",
+    height: "100%",
     // ここで見た他月をクリア
-    datesSet:       handleDatesSet,
-
-    // 🔑 描画コンテンツを一度だけ決める
+    datesSet: handleDatesSet,
+    // 描画コンテンツを一度だけ決める
     dayCellContent: ({ date, isOther }) => {
       const m = date.getMonth() + 1;
       const d = date.getDate();
@@ -51,7 +56,7 @@
       return { html: `${d}` };
     },
 
-    events: initialEvents,
+    events: events,
   };
 
   onMount(() => {
